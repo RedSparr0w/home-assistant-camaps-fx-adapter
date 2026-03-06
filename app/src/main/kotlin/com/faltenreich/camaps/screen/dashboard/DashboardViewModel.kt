@@ -66,9 +66,9 @@ class DashboardViewModel(
         activity.startActivityForResult(intent, ACTIVITY_REQUEST_CODE)
     }
 
-    fun logout() = viewModelScope.launch {
-        settingsRepository.saveHomeAssistantUri("")
-        settingsRepository.saveHomeAssistantToken("")
+    fun logout(onLoggedOut: () -> Unit) = viewModelScope.launch {
+        settingsRepository.clear()
+        onLoggedOut()
     }
 
     companion object {

@@ -4,6 +4,7 @@ import android.content.Context
 import android.provider.Settings
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -21,10 +22,8 @@ class KeyValueStore(private val context: Context) {
     }
 
     suspend fun putString(key: String, value: String) {
-        context.dataStore.updateData { data ->
-            data.toMutablePreferences().also { preferences ->
-                preferences[stringPreferencesKey(key)] = value
-            }
+        context.dataStore.edit { preferences ->
+            preferences[stringPreferencesKey(key)] = value
         }
     }
 
@@ -35,16 +34,20 @@ class KeyValueStore(private val context: Context) {
     }
 
     suspend fun putStringSet(key: String, value: Set<String>) {
-        context.dataStore.updateData { data ->
-            data.toMutablePreferences().also { preferences ->
-                preferences[stringSetPreferencesKey(key)] = value
-            }
+        context.dataStore.edit { preferences ->
+            preferences[stringSetPreferencesKey(key)] = value
         }
     }
 
     fun getStringSet(key: String, default: Set<String>? = null): Flow<Set<String>?> {
         return context.dataStore.data.map { preferences ->
             preferences[stringSetPreferencesKey(key)] ?: default
+        }
+    }
+
+    suspend fun clear() {
+        context.dataStore.edit { preferences ->
+            preferences.clear()
         }
     }
 }

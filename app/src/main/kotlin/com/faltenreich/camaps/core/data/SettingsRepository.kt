@@ -49,6 +49,10 @@ class SettingsRepository(private val keyValueStore: KeyValueStore) {
         keyValueStore.putStringSet(KEY_REGISTERED_SENSOR_UNIQUE_IDS, emptySet())
     }
 
+    suspend fun clear() {
+        keyValueStore.clear()
+    }
+
     companion object {
 
         private const val KEY_HOME_ASSISTANT_URI = "home_assistant_uri"

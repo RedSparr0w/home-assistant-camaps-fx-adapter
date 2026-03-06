@@ -1,6 +1,7 @@
 package com.faltenreich.camaps.screen.dashboard
 
 import android.app.Activity
+import android.content.Intent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -97,7 +98,18 @@ fun DashboardScreen(
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
             confirmButton = {
-                TextButton(onClick = viewModel::logout) {
+                TextButton(
+                    onClick = {
+                        viewModel.logout {
+                            val activity = context as? Activity
+                            val intent = activity?.intent
+                            if (activity != null && intent != null) {
+                                activity.finish()
+                                activity.startActivity(intent)
+                            }
+                        }
+                    }
+                ) {
                     Text(stringResource(R.string.logout))
                 }
             },
