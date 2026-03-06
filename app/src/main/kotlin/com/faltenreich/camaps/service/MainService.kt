@@ -1,5 +1,7 @@
 package com.faltenreich.camaps.service
 
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
@@ -51,12 +53,14 @@ class MainService : NotificationListenerService() {
 
     override fun onDestroy() {
         Log.d(TAG, "Service destroyed")
+        isConnected = false
         super.onDestroy()
     }
 
     override fun onListenerConnected() {
         super.onListenerConnected()
         Log.d(TAG, "Service connected")
+        isConnected = true
         scope.launch {
             appStateProvider.addLog(LogEntryFactory.create(MainServiceState.Connected))
             homeAssistantController.start()
@@ -66,6 +70,7 @@ class MainService : NotificationListenerService() {
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
         Log.d(TAG, "Service disconnected")
+        isConnected = false
         appStateProvider.addLog(LogEntryFactory.create(MainServiceState.Disconnected))
     }
 
@@ -79,5 +84,12 @@ class MainService : NotificationListenerService() {
     companion object {
 
         private val TAG = MainService::class.java.simpleName
+
+        var isConnected: Boolean = false
+            private set
+
+        fun requestRebind(context: Context) {
+            requestRebind(ComponentName(context, MainService::class.java))
+        }
     }
 }

@@ -32,7 +32,8 @@ object LogEntryFactory {
             is MainServiceState.Disconnected -> LogEntry(
                 dateTime = dateTime,
                 source = source,
-                message = "Service disconnected",
+                message = "Service disconnected. Try toggling the permission off and back on in settings.",
+                issue = LogEntry.Issue.MISSING_PERMISSION,
             )
             is MainServiceState.Connected -> LogEntry(
                 dateTime = dateTime,

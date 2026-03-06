@@ -10,7 +10,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.faltenreich.camaps.AppStateProvider
 import com.faltenreich.camaps.R
-import com.faltenreich.camaps.ServiceLocator.appStateProvider
 import com.faltenreich.camaps.locate
 import com.faltenreich.camaps.screen.dashboard.log.LogEntryFactory
 import com.faltenreich.camaps.core.data.SettingsRepository
@@ -23,7 +22,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class DashboardViewModel(
-    appStateProvider: AppStateProvider = locate(),
+    private val appStateProvider: AppStateProvider = locate(),
     private val settingsRepository: SettingsRepository = locate(),
     private val camApsFxPackageLocator: CamApsFxPackageLocator = locate(),
 ) : ViewModel() {
@@ -55,9 +54,14 @@ class DashboardViewModel(
             context.contentResolver,
             "enabled_notification_listeners",
         )
-        val hasPermission = enabledListeners?.contains(componentName.flattenToString()) == true
-        if (!hasPermission) {
+        val isEnabledInSettings = enabledListeners?.contains(componentName.flattenToString()) == true
+
+        if (!isEnabledInSettings) {
             appStateProvider.addLog(LogEntryFactory.create(MainServiceState.MissingPermission))
+        } else if (!MainService.isConnected) {
+            // Permission is enabled in settings, but the service is not connected.
+            MainService.requestRebind(context)
+            appStateProvider.addLog(LogEntryFactory.create(MainServiceState.Disconnected))
         }
     }
 
