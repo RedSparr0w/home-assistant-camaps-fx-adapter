@@ -16,6 +16,7 @@ import com.faltenreich.camaps.core.data.SettingsRepository
 import com.faltenreich.camaps.service.MainService
 import com.faltenreich.camaps.service.MainServiceState
 import com.faltenreich.camaps.service.camaps.CamApsFxPackageLocator
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -58,10 +59,15 @@ class DashboardViewModel(
 
         if (!isEnabledInSettings) {
             appStateProvider.addLog(LogEntryFactory.create(MainServiceState.MissingPermission))
-        } else if (!MainService.isConnected) {
-            // Permission is enabled in settings, but the service is not connected.
-            MainService.requestRebind(context)
-            appStateProvider.addLog(LogEntryFactory.create(MainServiceState.Disconnected))
+        } else {
+            // Give the service a moment to connect on app start before reporting a failure
+            viewModelScope.launch {
+                delay(SERVICE_CONNECTION_DELAY_MS)
+                if (!MainService.isConnected) {
+                    MainService.requestRebind(context)
+                    appStateProvider.addLog(LogEntryFactory.create(MainServiceState.Disconnected))
+                }
+            }
         }
     }
 
@@ -78,5 +84,6 @@ class DashboardViewModel(
     companion object {
 
         private const val ACTIVITY_REQUEST_CODE = 1001
+        private const val SERVICE_CONNECTION_DELAY_MS = 2000L
     }
 }
